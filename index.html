@@ -22,40 +22,109 @@
   <script src="assets/dangvuhiep/vendor/three.min.js"></script>
   <script src="assets/dangvuhiep/vendor/OrbitControls.js"></script>
   <script src="assets/dangvuhiep/vendor/gsap.min.js"></script>
-</head>
-<style>
-  /* Nút bật tắt nhạc nền góc phải bên dưới */
-  .music-btn {
-    position: fixed;
-    bottom: 40px;
-    right: 40px;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: rgba(8, 12, 20, 0.4);
-    border: 1px solid rgba(201, 168, 76, 0.3);
-    color: #E8DCC8;
-    font-size: 1.2rem;
-    cursor: pointer;
-    z-index: 9999;
-    backdrop-filter: blur(8px);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
 
-  .music-btn:hover {
-    background: rgba(201, 168, 76, 0.2);
-    border-color: rgba(201, 168, 76, 0.8);
-    color: #C9A84C;
-    transform: scale(1.1) rotate(5deg);
-    box-shadow: 0 0 20px rgba(201, 168, 76, 0.2);
-  }
-</style>
+  <style>
+    /* ================= WIDGET NÚT BẬT/TẮT NHẠC NỀN ================= */
+    #music-widget {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(8, 12, 20, 0.85);
+      border: 1px solid rgba(201, 168, 76, 0.5);
+      padding: 6px 16px 6px 8px;
+      border-radius: 50px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #music-widget:hover {
+      border-color: #C9A84C;
+      box-shadow: 0 0 25px rgba(201, 168, 76, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .music-btn-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(201, 168, 76, 0.15);
+      border: 1px solid rgba(201, 168, 76, 0.6);
+      color: #C9A84C;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      transition: all 0.3s ease;
+    }
+
+    /* Hiệu ứng gợn sóng khi nhạc đang bật */
+    #music-widget.playing .music-btn-icon {
+      background: #C9A84C;
+      color: #080C14;
+      animation: pulseGold 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseGold {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.6); }
+      70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(201, 168, 76, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(201, 168, 76, 0); }
+    }
+
+    .music-btn-label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .music-btn-label .music-status {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: #E8DCC8;
+      letter-spacing: 0.03em;
+    }
+
+    .music-btn-label .music-desc {
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      color: rgba(201, 168, 76, 0.85);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* Đổi màu viền nếu file nhạc không tìm thấy */
+    #music-widget.error {
+      border-color: #ff5252 !important;
+    }
+    #music-widget.error .music-btn-icon {
+      background: rgba(255, 82, 82, 0.2);
+      border-color: #ff5252;
+      color: #ff5252;
+    }
+
+    @media (max-width: 768px) {
+      #music-widget {
+        bottom: 20px;
+        right: 20px;
+        padding: 5px;
+      }
+      .music-btn-label {
+        display: none; /* Thu gọn trên mobile */
+      }
+    }
+  </style>
+</head>
 <body>
   <!-- HÌNH NỀN PHÒNG TRANH 3D ĐỘNG FULL MÀN HÌNH -->
-<iframe src="https://baotangdvh.vercel.app/" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; border: none; z-index: -1; pointer-events: none;" allowfullscreen></iframe>
+  <iframe src="https://baotangdvh.vercel.app/" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; border: none; z-index: -1; pointer-events: none;" allowfullscreen></iframe>
 
   <!-- Preloader -->
   <div id="preloader" style="position:fixed; inset:0; z-index:99999; background:#080C14; display:flex; flex-direction:column; align-items:center; justify-content:center; transition: opacity 0.5s ease;">
@@ -83,16 +152,13 @@
   </nav>
 
   <!-- HERO SECTION -->
-  <!-- MÀN HÌNH CHÍNH: PHÒNG TRANH 3D TƯƠNG TÁC -->
-<header id="hero" style="position: relative; width: 100vw; height: 100vh; overflow: hidden; margin: 0; padding: 0;">
-  <!-- Iframe 3D hiển thị trọn vẹn, không bị chặn chuột, có thể tương tác ngay -->
-  <iframe src="https://baotangdvh.vercel.app/" style="width: 100%; height: 100%; border: none;"></iframe>
+  <header id="hero" style="position: relative; width: 100vw; height: 100vh; overflow: hidden; margin: 0; padding: 0;">
+    <iframe src="https://baotangdvh.vercel.app/" style="width: 100%; height: 100%; border: none;"></iframe>
 
-  <!-- Nút điều hướng để cuộn xuống các phần nội dung của trang web -->
-  <a href="#biography" style="position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); background-color: #C9A84C; color: #080C14; padding: 15px 35px; border-radius: 50px; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 16px; text-decoration: none; box-shadow: 0 5px 20px rgba(0,0,0,0.8); z-index: 100; transition: transform 0.3s ease;">
-    <i class="fa-solid fa-arrow-down" style="margin-right: 8px;"></i> Khám phá Bảo tàng
-  </a>
-</header>
+    <a href="#biography" style="position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); background-color: #C9A84C; color: #080C14; padding: 15px 35px; border-radius: 50px; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 16px; text-decoration: none; box-shadow: 0 5px 20px rgba(0,0,0,0.8); z-index: 100; transition: transform 0.3s ease;">
+      <i class="fa-solid fa-arrow-down" style="margin-right: 8px;"></i> Khám phá Bảo tàng
+    </a>
+  </header>
 
   <div class="divider"></div>
 
@@ -121,10 +187,7 @@
         </div>
       </div>
 
-      <!-- Timeline wrapper -->
-      <div class="timeline" id="timeline-container">
-        <!-- Rendered dynamically by JS -->
-      </div>
+      <div class="timeline" id="timeline-container"></div>
     </div>
   </section>
 
@@ -142,7 +205,6 @@
           </p>
         </div>
 
-        <!-- Room Tabs -->
         <div class="room-tabs" id="room-tabs">
           <button class="room-tab active" data-room="all">Tất cả phòng</button>
           <button class="room-tab" data-room="1">Phòng 1: Chân dung & Huân chương</button>
@@ -151,14 +213,9 @@
         </div>
       </div>
 
-      <!-- Museum Grid -->
-      <div class="museum-grid" id="museum-grid">
-        <!-- Rendered dynamically by JS -->
-      </div>
+      <div class="museum-grid" id="museum-grid"></div>
 
-      <!-- Legacy Stories Section -->
       <div class="legacy-stories reveal">
-        <!-- Story 1: Bố không phải là cái ô -->
         <div class="story-card">
           <div class="story-icon"><i class="fa-solid fa-umbrella text-gold"></i></div>
           <h3 class="story-title">“Bố không phải là cái ô...”</h3>
@@ -170,7 +227,6 @@
           </div>
         </div>
 
-        <!-- Story 2: Danh hiệu Bà mẹ Việt Nam Anh hùng -->
         <div class="story-card">
           <div class="story-icon"><i class="fa-solid fa-person-breastfeeding text-gold"></i></div>
           <h3 class="story-title">Danh hiệu “Bà mẹ Việt Nam Anh hùng”</h3>
@@ -182,7 +238,6 @@
           </div>
         </div>
 
-        <!-- Story 3: Phương châm Bám thắt lưng địch -->
         <div class="story-card">
           <div class="story-icon"><i class="fa-solid fa-shield-halved text-gold"></i></div>
           <h3 class="story-title">Chiến thuật “Bám thắt lưng địch mà đánh”</h3>
@@ -194,7 +249,6 @@
           </div>
         </div>
 
-        <!-- Battles Header Card -->
         <div class="battles-header-card reveal">
           <div class="section-label">Sa Bàn Trận Địa</div>
           <h2 class="section-title">Chiến Trường Tây Nguyên &amp; Trận Ia Đrăng 1965</h2>
@@ -244,7 +298,6 @@
         </p>
       </div>
 
-      <!-- Filters -->
       <div class="gallery-filters" id="gallery-filters">
         <button class="filter-btn active" data-filter="all">Tất cả ảnh</button>
         <button class="filter-btn" data-filter="1945">Thập niên 1945 - 1954</button>
@@ -254,10 +307,7 @@
         <button class="filter-btn" data-filter="ai">Phục dựng AI</button>
       </div>
 
-      <!-- Masonry Grid -->
-      <div class="gallery-masonry" id="gallery-masonry">
-        <!-- Rendered dynamically by JS -->
-      </div>
+      <div class="gallery-masonry" id="gallery-masonry"></div>
     </div>
   </section>
 
@@ -317,52 +367,131 @@
     </div>
   </footer>
 
-  <!-- Scripts -->
+  <!-- Scripts gốc của trang web -->
   <script>
-    // Đường dẫn tương đối để chạy hoàn hảo offline lẫn online
     window.ASSET_BASE = 'assets/dangvuhiep/';
   </script>
   <script src="assets/dangvuhiep/assets/data/content.js?t=4"></script>
   <script src="assets/dangvuhiep/js/main.js?t=2"></script>
-  <!-- HỆ THỐNG ÂM THANH KHÔNG GIAN -->
-<audio id="bg-music" loop>
-  <!-- Thay tên nhac-nen.mp3 thành đúng tên file nhạc của bạn -->
-  <source src="assets/dangvuhiep/assets/nhac-nen.mp3" type="audio/mpeg">
-<audio id="bg-music" loop>
-  <source src="assets/media/nhac-nen.mp3" type="audio/mpeg">
-</audio>
-<button id="music-toggle" class="music-btn" onclick="toggleMusic()" title="Bật/Tắt Nhạc nền">
-  <i class="fa-solid fa-volume-xmark"></i>
-</button>
-<!-- HỆ THỐNG ÂM THANH KHÔNG GIAN HOÀN CHỈNH -->
-<audio id="bg-music" loop>
-  <source src="assets/media/nhac-nen.mp3" type="audio/mpeg">
-</audio>
 
-<button id="music-toggle" class="music-btn" onclick="toggleMusic()" title="Bật/Tắt Nhạc nền">
-  <i class="fa-solid fa-volume-xmark"></i>
-</button>
-<script>
-  const music = document.getElementById("bg-music");
-  const musicIcon = document.querySelector("#music-toggle i");
-  let isPlaying = false;
+  <!-- ================= HỆ THỐNG ÂM THANH CHUẨN ================= -->
+  <audio id="bg-music" loop preload="auto">
+    <!-- 1. Đường dẫn trực tiếp từ thư mục assets -->
+    <source src="assets/nhac-nen-mua-do.mp3" type="audio/mpeg">
+    
+    <!-- 2. Dự phòng: Nếu trên Windows bị ẩn đuôi file và thành .mp3.mp3 -->
+    <source src="assets/nhac-nen-mua-do.mp3.mp3" type="audio/mpeg">
 
-  function toggleMusic() {
-    if (isPlaying) {
-      music.pause();
-      musicIcon.classList.remove("fa-volume-high");
-      musicIcon.classList.add("fa-volume-xmark");
-    } else {
-      music.play();
-      musicIcon.classList.remove("fa-volume-xmark");
-      musicIcon.classList.add("fa-volume-high");
-    }
-    isPlaying = !isPlaying;
-  }
-  // Tự động phát nhạc khi người dùng tương tác lần đầu
-  document.body.addEventListener('click', function() {
-    if (!isPlaying) toggleMusic();
-  }, { once: true });
-</script>
+    <!-- 3. Dự phòng: Nếu nằm trong assets/dangvuhiep/assets/ -->
+    <source src="assets/dangvuhiep/assets/nhac-nen-mua-do.mp3" type="audio/mpeg">
+    
+    Trình duyệt không hỗ trợ phát âm thanh.
+  </audio>
+
+  <!-- Widget Nút Bật/Tắt Nhạc Nền -->
+  <div id="music-widget" title="Bấm để Bật hoặc Tắt nhạc nền">
+    <div class="music-btn-icon">
+      <i id="music-icon" class="fa-solid fa-volume-xmark"></i>
+    </div>
+    <div class="music-btn-label">
+      <span class="music-status" id="music-status">Bật nhạc</span>
+      <span class="music-desc" id="music-desc">Mùa đỏ</span>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const music = document.getElementById("bg-music");
+      const widget = document.getElementById("music-widget");
+      const icon = document.getElementById("music-icon");
+      const statusText = document.getElementById("music-status");
+      const descText = document.getElementById("music-desc");
+
+      let isPlaying = false;
+      let hasError = false;
+
+      // Đặt âm lượng vừa phải, trang nghiêm (40%)
+      music.volume = 0.4;
+
+      // Xử lý phát nhạc
+      function startMusic() {
+        if (hasError) return;
+
+        const playPromise = music.play();
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            isPlaying = true;
+            widget.classList.add("playing");
+            icon.className = "fa-solid fa-volume-high";
+            statusText.textContent = "Tắt nhạc";
+            descText.textContent = "Đang phát";
+          }).catch(err => {
+            console.warn("Chính sách trình duyệt: cần người dùng tương tác trước khi phát.", err);
+            isPlaying = false;
+            widget.classList.remove("playing");
+            icon.className = "fa-solid fa-volume-xmark";
+            statusText.textContent = "Bật nhạc";
+            descText.textContent = "Mùa đỏ";
+          });
+        }
+      }
+
+      // Xử lý dừng nhạc
+      function pauseMusic() {
+        music.pause();
+        isPlaying = false;
+        widget.classList.remove("playing");
+        icon.className = "fa-solid fa-volume-xmark";
+        statusText.textContent = "Bật nhạc";
+        descText.textContent = "Mùa đỏ";
+      }
+
+      // Khi người dùng bấm thẳng vào nút widget
+      widget.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (hasError) {
+          alert("Không tìm thấy file nhạc 'nhac-nen-mua-do.mp3' trong thư mục 'assets/'. Hãy kiểm tra lại thư mục của bạn.");
+          return;
+        }
+
+        if (isPlaying) {
+          pauseMusic();
+        } else {
+          startMusic();
+        }
+      });
+
+      // Tự động kích hoạt nhạc khi người dùng click hoặc cuộn trang lần đầu
+      function handleFirstInteraction(e) {
+        if (e.target && e.target.closest && e.target.closest("#music-widget")) {
+          return; // Nếu đã click trúng widget thì nút tự xử lý
+        }
+        if (!isPlaying && !hasError) {
+          startMusic();
+        }
+        removeInteractionListeners();
+      }
+
+      function removeInteractionListeners() {
+        window.removeEventListener("click", handleFirstInteraction);
+        window.removeEventListener("scroll", handleFirstInteraction);
+        window.removeEventListener("keydown", handleFirstInteraction);
+      }
+
+      window.addEventListener("click", handleFirstInteraction, { once: true });
+      window.addEventListener("scroll", handleFirstInteraction, { once: true });
+      window.addEventListener("keydown", handleFirstInteraction, { once: true });
+
+      // Cảnh báo nếu file nhạc không tồn tại
+      music.addEventListener("error", function () {
+        hasError = true;
+        widget.classList.add("error");
+        icon.className = "fa-solid fa-triangle-exclamation";
+        statusText.textContent = "Lỗi file nhạc";
+        descText.textContent = "Kiểm tra assets/";
+        console.error("Lỗi: Không tìm thấy file 'nhac-nen-mua-do.mp3' trong thư mục assets.");
+      }, true);
+    })();
+  </script>
 </body>
 </html>
